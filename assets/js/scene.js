@@ -50,6 +50,9 @@ const uniforms = {
 	uPulseDir: { value: new THREE.Vector3(0, 0, 1) },
 	uPointer: { value: new THREE.Vector3(0, 0, 1) },
 	uHover: { value: 0 },
+	uScatter: { value: 0 },
+	uCalm: { value: 1 },
+	uFade: { value: 1 },
 	uSize: { value: renderer.getPixelRatio() * (isMobile ? 2.2 : 2.6) },
 	uColorA: { value: new THREE.Color("#8b5cf6") },
 	uColorB: { value: new THREE.Color("#22d3ee") },
@@ -57,18 +60,20 @@ const uniforms = {
 };
 
 const coreVertex = /* glsl */ `
-uniform float uTime, uPulse, uHover, uSize;
+uniform float uTime, uPulse, uHover, uSize, uScatter, uCalm;
 uniform vec3 uPulseDir, uPointer;
 varying float vMix;
 varying float vGlow;
 ${NOISE}
 void main(){
 	vec3 n = normalize(position);
-	float noise = snoise(n * 1.6 + vec3(uTime * 0.25));
+	float noise = snoise(n * 1.6 + vec3(uTime * 0.25)) * uCalm;
 	float bulge = pow(max(dot(n, uPointer), 0.), 6.) * 0.35 * uHover;
 	float d = acos(clamp(dot(n, uPulseDir), -1., 1.));
 	float wave = sin(d * 9. - uPulse * 9.) * exp(-uPulse * 1.6) * (1. - smoothstep(uPulse * 3.2 - .4, uPulse * 3.2 + .4, d)) * 0.22;
-	vec3 p = position * (1. + noise * 0.18 + bulge + wave);
+	float rnd = fract(sin(dot(position, vec3(12.9898, 78.233, 37.719))) * 43758.5453);
+	float scatter = uScatter * (0.4 + rnd * 1.8) + uScatter * snoise(n * 3. + uTime * .4) * .5;
+	vec3 p = position * (1. + noise * 0.18 + bulge + wave + scatter);
 	vMix = noise * .5 + .5;
 	vGlow = bulge * 2.5 + abs(wave) * 4.;
 	vec4 mv = modelViewMatrix * vec4(p, 1.);
@@ -78,13 +83,14 @@ void main(){
 
 const coreFragment = (points, alpha) => /* glsl */ `
 uniform vec3 uColorA, uColorB, uColorC;
+uniform float uFade, uScatter;
 varying float vMix;
 varying float vGlow;
 void main(){
 	${points ? "float r = length(gl_PointCoord - .5); if (r > .5) discard; float a = smoothstep(.5, .1, r);" : "float a = 1.;"}
 	vec3 col = mix(uColorA, uColorB, vMix);
 	col = mix(col, uColorC, clamp(vGlow, 0., 1.) * .6);
-	gl_FragColor = vec4(col, a * ${alpha.toFixed(2)} * (1. + vGlow));
+	gl_FragColor = vec4(col, a * ${alpha.toFixed(2)} * (1. + vGlow) * uFade${points ? "" : " * (1. - uScatter)"});
 }`;
 
 const material = (points, alpha) =>
@@ -97,12 +103,15 @@ const material = (points, alpha) =>
 		blending: THREE.AdditiveBlending,
 	});
 
+// The stage holds the core and its ring so both move together between scroll poses
+const stage = new THREE.Group();
+scene.add(stage);
 const core = new THREE.Group();
 const radius = 1.55;
 const sphere = new THREE.IcosahedronGeometry(radius, isMobile ? 18 : 28);
 core.add(new THREE.Points(sphere, material(true, 0.85)));
 core.add(new THREE.LineSegments(new THREE.WireframeGeometry(new THREE.IcosahedronGeometry(radius, isMobile ? 5 : 7)), material(false, 0.14)));
-scene.add(core);
+stage.add(core);
 
 // Orbiting particle ring + distant dust
 function particles(count, spread, ring) {
@@ -142,11 +151,12 @@ function particles(count, spread, ring) {
 				}`,
 			fragmentShader: /* glsl */ `
 				uniform vec3 uColorA, uColorB, uColorC;
+				uniform float uFade;
 				varying float vSeed;
 				void main(){
 					float r = length(gl_PointCoord - .5); if (r > .5) discard;
 					vec3 col = vSeed > .93 ? uColorC : mix(uColorA, uColorB, vSeed);
-					gl_FragColor = vec4(col, smoothstep(.5, 0., r) * ${ring ? ".75" : ".5"});
+					gl_FragColor = vec4(col, smoothstep(.5, 0., r) * ${ring ? ".75 * uFade" : ".5"});
 				}`,
 			transparent: true,
 			depthWrite: false,
@@ -156,8 +166,7 @@ function particles(count, spread, ring) {
 }
 
 const ring = particles(isMobile ? 900 : 1800, 0, true);
-ring.rotation.set(0.45, 0, -0.25);
-scene.add(ring);
+stage.add(ring);
 const dust = particles(isMobile ? 350 : 700, 14, false);
 scene.add(dust);
 
@@ -165,7 +174,7 @@ scene.add(dust);
 const pointer = new THREE.Vector2();
 const target = new THREE.Vector2();
 const raycaster = new THREE.Raycaster();
-const hitSphere = new THREE.Sphere(new THREE.Vector3(), radius * 1.15);
+const hitSphere = new THREE.Sphere();
 let hoverTarget = 0;
 
 function setPointer(x, y) {
@@ -221,6 +230,43 @@ function resize() {
 addEventListener("resize", resize);
 resize();
 
+// Scroll poses: each section[data-pose] has a target look for the stage
+const POSES = {
+	hero: { x: 0, y: 0, s: 1, scatter: 0, calm: 1, tilt: 0, hue: 0, fade: 1, beat: 0 },
+	about: { x: 2.3, y: 0, s: 0.72, scatter: 0, calm: 0.9, tilt: 0.6, hue: 0.25, fade: 1, beat: 0 },
+	experience: { x: -2.4, y: 0, s: 0.75, scatter: 0, calm: 0.35, tilt: -0.5, hue: 1, fade: 1, beat: 0 },
+	skills: { x: 0, y: 0, s: 1.05, scatter: 1, calm: 1, tilt: 0.25, hue: 0.5, fade: 0.75, beat: 0 },
+	education: { x: 2.3, y: 0.2, s: 0.65, scatter: 0.12, calm: 0.7, tilt: 0.9, hue: 0.3, fade: 1, beat: 0 },
+	contact: { x: 0, y: 0, s: 0.9, scatter: 0, calm: 1.2, tilt: 0, hue: 0, fade: 1, beat: 1 },
+};
+const KEYS = Object.keys(POSES.hero);
+const poseSections = [...document.querySelectorAll("[data-pose]")];
+const pose = { ...POSES.hero };
+const violet = new THREE.Color("#8b5cf6");
+const blue = new THREE.Color("#3b82f6");
+
+function poseFor(name) {
+	const p = POSES[name] ?? POSES.hero;
+	// On phones the text spans the full width, so the core stays centered and dims behind it
+	if (!isMobile || name === "hero" || name === "contact") return p;
+	return { ...p, x: 0, y: 0, s: p.s * 0.9, fade: p.fade * 0.4 };
+}
+
+function scrollTarget() {
+	const y = scrollY;
+	let i = 0;
+	while (i < poseSections.length - 1 && poseSections[i + 1].offsetTop <= y) i++;
+	const a = poseFor(poseSections[i].dataset.pose);
+	const next = poseSections[i + 1];
+	if (!next) return a;
+	const top = poseSections[i].offsetTop;
+	const f = THREE.MathUtils.smoothstep((y - top) / (next.offsetTop - top), 0.3, 1);
+	const b = poseFor(next.dataset.pose);
+	const out = {};
+	for (const k of KEYS) out[k] = a[k] + (b[k] - a[k]) * f;
+	return out;
+}
+
 // Loop
 const clock = new THREE.Clock();
 const speed = reduceMotion ? 0.15 : 1;
@@ -235,14 +281,28 @@ function frame() {
 	const input = hasTilt ? tilt : target;
 	pointer.lerp(input, 0.05);
 
+	const goal = scrollTarget();
+	for (const k of KEYS) pose[k] += (goal[k] - pose[k]) * (reduceMotion ? 1 : 0.07);
+	stage.position.set(pose.x, pose.y, 0);
+	stage.scale.setScalar(pose.s);
+	uniforms.uScatter.value = pose.scatter;
+	uniforms.uCalm.value = pose.calm;
+	uniforms.uFade.value = pose.fade;
+	uniforms.uColorA.value.copy(violet).lerp(blue, pose.hue);
+	if (pose.beat > 0.5 && uniforms.uPulse.value > 1.8 && !reduceMotion) {
+		uniforms.uPulseDir.value.set(0, 0, 1).applyQuaternion(core.quaternion.clone().invert());
+		uniforms.uPulse.value = 0;
+	}
+	hitSphere.set(stage.position, radius * 1.15 * pose.s);
+
 	const dir = pointOnCore(target);
-	hoverTarget = dir && !hasTilt ? 1 : 0;
+	hoverTarget = dir && !hasTilt && pose.scatter < 0.3 ? 1 : 0;
 	if (dir) uniforms.uPointer.value.lerp(dir, 0.15).normalize();
 	uniforms.uHover.value += (hoverTarget - uniforms.uHover.value) * 0.06;
 
 	core.rotation.y = t * 0.12;
 	core.rotation.x = Math.sin(t * 0.2) * 0.15;
-	ring.rotation.y = -t * 0.05;
+	ring.rotation.set(0.45 + pose.tilt * 0.6, -t * 0.05, -0.25 + pose.tilt * 0.3);
 	dust.rotation.y = t * 0.01;
 
 	camera.position.x = pointer.x * 0.6;
