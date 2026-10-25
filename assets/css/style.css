@@ -537,6 +537,17 @@ html:not(.js) .topbar {
 	color: #c9b8ff;
 }
 
+.job ul {
+	list-style: none;
+	display: grid;
+	gap: 0.2rem;
+}
+
+.job ul li::before {
+	content: "▹ ";
+	color: var(--cyan);
+}
+
 /* Skills: rows drift in opposite directions with scroll */
 
 .marquee {
