@@ -197,6 +197,13 @@ addEventListener("pointerdown", (e) => {
 	requestTilt();
 });
 
+// The hidden terminal opening sends a pulse through the core
+addEventListener("terminal:open", () => {
+	if (reduceMotion) return;
+	uniforms.uPulseDir.value.set(0, 0, 1).applyQuaternion(core.quaternion.clone().invert());
+	uniforms.uPulse.value = 0;
+});
+
 const tilt = new THREE.Vector2();
 let hasTilt = false;
 function onTilt(e) {
@@ -235,6 +242,7 @@ const POSES = {
 	hero: { x: 0, y: 0, s: 1, scatter: 0, calm: 1, tilt: 0, hue: 0, fade: 1, beat: 0 },
 	about: { x: 2.3, y: 0, s: 0.72, scatter: 0, calm: 0.9, tilt: 0.6, hue: 0.25, fade: 1, beat: 0 },
 	experience: { x: -2.4, y: 0, s: 0.75, scatter: 0, calm: 0.35, tilt: -0.5, hue: 1, fade: 1, beat: 0 },
+	projects: { x: 0, y: 2, s: 0.55, scatter: 0, calm: 0.6, tilt: 1.4, hue: 0.7, fade: 0.45, beat: 0 },
 	skills: { x: 0, y: 0, s: 1.05, scatter: 1, calm: 1, tilt: 0.25, hue: 0.5, fade: 0.75, beat: 0 },
 	education: { x: 2.3, y: 0.2, s: 0.65, scatter: 0.12, calm: 0.7, tilt: 0.9, hue: 0.3, fade: 1, beat: 0 },
 	contact: { x: 0, y: 0, s: 0.9, scatter: 0, calm: 1.2, tilt: 0, hue: 0, fade: 1, beat: 1 },

@@ -13,12 +13,11 @@
 		<meta property="og:image" content="https://cyrionp.github.io/assets/img/avatar.jpg" />
 		<script>document.documentElement.classList.add("js")</script>
 		<link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap" />
+		<link rel="preload" href="assets/fonts/space-grotesk-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin />
+		<link rel="modulepreload" href="assets/vendor/three.module.min.js" />
 		<link rel="stylesheet" href="assets/css/style.css" />
 		<script type="importmap">
-			{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
+			{ "imports": { "three": "./assets/vendor/three.module.min.js" } }
 		</script>
 	</head>
 	<body>
@@ -30,6 +29,7 @@
 			<nav class="topnav" aria-label="Sections">
 				<a href="#about">About</a>
 				<a href="#experience">Experience</a>
+				<a href="#projects">Projects</a>
 				<a href="#skills">Skills</a>
 				<a href="#education">Education</a>
 				<a href="#contact">Contact</a>
@@ -116,8 +116,70 @@
 				</ol>
 			</section>
 
+			<section id="projects" class="section projects" data-pose="projects">
+				<p class="kicker">03 — Projects</p>
+				<h2 class="title">Things I've built</h2>
+				<div class="project-grid">
+					<a class="project reveal is-featured" href="https://github.com/cyrionp/dynamic-peninsula" target="_blank" rel="noopener">
+						<p class="project-meta"><span class="project-lang" style="--c: #f1e05a">JavaScript</span><span class="project-badge">Latest</span><svg class="project-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg></p>
+						<h3>dynamic-peninsula</h3>
+						<p>A small open-source companion that hangs from the top edge of your Windows screen: media controls, stopwatches, countdowns, notes, to-dos and ten themes. Early work in progress.</p>
+						<ul class="tags"><li>Tauri</li><li>Rust</li><li>Vite</li></ul>
+					</a>
+					<a class="project reveal" href="https://github.com/cyrionp/messenger-clone" target="_blank" rel="noopener">
+						<p class="project-meta"><span class="project-lang" style="--c: #3178c6">TypeScript</span><svg class="project-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg></p>
+						<h3>messenger-clone</h3>
+						<p>Real-time messenger with sign-in, live updates and image uploads.</p>
+						<ul class="tags"><li>Next.js</li><li>Prisma</li><li>NextAuth</li><li>Pusher</li><li>Tailwind</li></ul>
+					</a>
+					<a class="project reveal" href="https://github.com/cyrionp/spotify-clone" target="_blank" rel="noopener">
+						<p class="project-meta"><span class="project-lang" style="--c: #3178c6">TypeScript</span><svg class="project-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg></p>
+						<h3>spotify-clone</h3>
+						<p>Spotify-inspired music app interface.</p>
+						<ul class="tags"><li>Next.js</li><li>React</li><li>Tailwind</li></ul>
+					</a>
+					<a class="project reveal" href="https://github.com/cyrionp/next-todo" target="_blank" rel="noopener">
+						<p class="project-meta"><span class="project-lang" style="--c: #3178c6">TypeScript</span><svg class="project-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg></p>
+						<h3>next-todo</h3>
+						<p>To-do app backed by a Prisma database.</p>
+						<ul class="tags"><li>Next.js</li><li>Prisma</li><li>Tailwind</li></ul>
+					</a>
+					<a class="project reveal" href="https://github.com/cyrionp/react-gym" target="_blank" rel="noopener">
+						<p class="project-meta"><span class="project-lang" style="--c: #3178c6">TypeScript</span><svg class="project-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg></p>
+						<h3>react-gym</h3>
+						<p>Gym landing page with animated sections and smooth scrolling.</p>
+						<ul class="tags"><li>React</li><li>Vite</li><li>Tailwind</li><li>Framer Motion</li></ul>
+					</a>
+					<a class="project reveal" href="https://github.com/cyrionp/facial-expression" target="_blank" rel="noopener">
+						<p class="project-meta"><span class="project-lang" style="--c: #3572a5">Python</span><svg class="project-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg></p>
+						<h3>facial-expression</h3>
+						<p>Flask web app that finds faces in an uploaded photo and predicts the facial expression with a Keras model.</p>
+						<ul class="tags"><li>Flask</li><li>Keras</li><li>MTCNN</li><li>OpenCV</li></ul>
+					</a>
+					<a class="project reveal" href="https://github.com/cyrionp/face_collector" target="_blank" rel="noopener">
+						<p class="project-meta"><span class="project-lang" style="--c: #3572a5">Python</span><svg class="project-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg></p>
+						<h3>face_collector</h3>
+						<p>Command-line tool that downloads images from Bing and saves the detected faces — aligned, resized and optionally grayscale — to build datasets.</p>
+						<ul class="tags"><li>MTCNN</li><li>OpenCV</li></ul>
+					</a>
+					<a class="project reveal" href="https://github.com/cyrionp/image_collector" target="_blank" rel="noopener">
+						<p class="project-meta"><span class="project-lang" style="--c: #3572a5">Python</span><svg class="project-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg></p>
+						<h3>image_collector</h3>
+						<p>Downloads images from Bing and keeps only the ones whose text, read with Tesseract OCR, matches your keywords.</p>
+						<ul class="tags"><li>Tesseract</li><li>OpenCV</li><li>Threading</li></ul>
+					</a>
+					<a class="project reveal" href="https://github.com/cyrionp/NotApp" target="_blank" rel="noopener">
+						<p class="project-meta"><span class="project-lang" style="--c: #00b4ab">Dart</span><svg class="project-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg></p>
+						<h3>NotApp</h3>
+						<p>Flutter note-taking app that stores notes on the device with SQLite.</p>
+						<ul class="tags"><li>Flutter</li><li>SQLite</li></ul>
+					</a>
+				</div>
+				<a class="more" href="https://github.com/cyrionp?tab=repositories" target="_blank" rel="noopener">More on GitHub →</a>
+			</section>
+
 			<section id="skills" class="section skills" data-pose="skills">
-				<p class="kicker">03 — Skills</p>
+				<p class="kicker">04 — Skills</p>
 				<h2 class="title">Tools of the trade</h2>
 				<div class="marquee" data-dir="1">
 					<ul class="chips">
@@ -142,7 +204,7 @@
 			</section>
 
 			<section id="education" class="section education" data-pose="education">
-				<p class="kicker">04 — Education</p>
+				<p class="kicker">05 — Education</p>
 				<h2 class="title">Where I learned</h2>
 				<div class="cards">
 					<article class="card reveal">
@@ -166,7 +228,7 @@
 			</section>
 
 			<section id="contact" class="section contact" data-pose="contact">
-				<p class="kicker">05 — Contact</p>
+				<p class="kicker">06 — Contact</p>
 				<h2 class="big reveal">Let's build<br />something cool.</h2>
 				<a class="mail reveal" href="mailto:kadir.durmaz@outlook.com.tr">kadir.durmaz@outlook.com.tr</a>
 				<nav class="links" aria-label="Contact links">
@@ -183,12 +245,16 @@
 						<svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
 					</a>
 				</nav>
-				<footer class="footer">&copy; 2026 &nbsp;&bull;&nbsp; Abdulkadir Durmaz</footer>
+				<footer class="footer">
+					&copy; 2026 &nbsp;&bull;&nbsp; Abdulkadir Durmaz
+					<button class="term-hint" type="button" hidden>psst… <span>press `</span></button>
+				</footer>
 			</section>
 		</main>
 
 		<script type="module" src="assets/js/ui.js"></script>
 		<script type="module" src="assets/js/scroll.js"></script>
+		<script type="module" src="assets/js/terminal.js"></script>
 		<script type="module" src="assets/js/scene.js"></script>
 	</body>
 </html>

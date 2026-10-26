@@ -39,6 +39,7 @@ const revealer = new IntersectionObserver(
 		for (const e of entries) {
 			if (e.isIntersecting) {
 				e.target.classList.add("is-in");
+				e.target.addEventListener("transitionend", () => e.target.classList.add("is-settled"), { once: true });
 				revealer.unobserve(e.target);
 			}
 		}

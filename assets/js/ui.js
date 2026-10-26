@@ -78,9 +78,27 @@ function magnetic(links) {
 	}
 }
 
+// Project cards: tilt toward the cursor (fine pointers only)
+function tilt(cards) {
+	if (reduceMotion || !matchMedia("(pointer: fine)").matches) return;
+
+	for (const card of cards) {
+		card.addEventListener("pointermove", (e) => {
+			const r = card.getBoundingClientRect();
+			card.style.setProperty("--rx", `${((e.clientY - r.top) / r.height - 0.5) * -10}deg`);
+			card.style.setProperty("--ry", `${((e.clientX - r.left) / r.width - 0.5) * 10}deg`);
+		});
+		card.addEventListener("pointerleave", () => {
+			card.style.setProperty("--rx", "0deg");
+			card.style.setProperty("--ry", "0deg");
+		});
+	}
+}
+
 scramble(document.querySelector(".name"));
 typewriter(
 	document.querySelector(".typed"),
 	[...document.querySelectorAll(".roles li")].map((li) => li.textContent.trim())
 );
 magnetic(document.querySelectorAll(".links a"));
+tilt(document.querySelectorAll(".project"));
