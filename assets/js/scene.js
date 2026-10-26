@@ -170,6 +170,78 @@ stage.add(ring);
 const dust = particles(isMobile ? 350 : 700, 14, false);
 scene.add(dust);
 
+// Tiny "kadir" labels floating inside the core; they fly out and brighten when it scatters
+function kadirLabels(count) {
+	const label = document.createElement("canvas");
+	label.width = label.height = 256;
+	const texture = new THREE.CanvasTexture(label);
+	const draw = () => {
+		const g = label.getContext("2d");
+		g.clearRect(0, 0, 256, 256);
+		g.fillStyle = "#fff";
+		g.font = '700 72px "Space Grotesk", system-ui, sans-serif';
+		g.textAlign = "center";
+		g.textBaseline = "middle";
+		g.fillText("kadir", 128, 128);
+		texture.needsUpdate = true;
+	};
+	draw();
+	document.fonts?.load('700 72px "Space Grotesk"').then(draw, () => {});
+
+	const pos = new Float32Array(count * 3);
+	const seed = new Float32Array(count);
+	for (let i = 0; i < count; i++) {
+		const v = new THREE.Vector3().randomDirection().multiplyScalar(radius * (0.25 + Math.random() * 0.6));
+		pos.set([v.x, v.y, v.z], i * 3);
+		seed[i] = Math.random();
+	}
+	const geo = new THREE.BufferGeometry();
+	geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+	geo.setAttribute("seed", new THREE.BufferAttribute(seed, 1));
+
+	return new THREE.Points(
+		geo,
+		new THREE.ShaderMaterial({
+			uniforms: { ...uniforms, uLabel: { value: texture }, uTwinkle: { value: reduceMotion ? 0 : 1 }, uScale: { value: isMobile ? 1.5 : 1 } },
+			vertexShader: /* glsl */ `
+				uniform float uTime, uSize, uScatter, uTwinkle, uScale;
+				attribute float seed;
+				varying float vSeed;
+				varying float vAlpha;
+				${NOISE}
+				void main(){
+					vSeed = seed;
+					vec3 q = position * 1.3 + uTime * .2;
+					vec3 p = position + vec3(snoise(q), snoise(q + 9.), snoise(q + 19.)) * .08;
+					p *= 1. + uScatter * (.8 + seed * 2.2);
+					vec4 mv = modelViewMatrix * vec4(p, 1.);
+					float twinkle = 1. - .3 * uTwinkle * (.5 + .5 * sin(uTime * 1.5 + seed * 50.));
+					vAlpha = mix(.16, .4, uScatter) * twinkle;
+					gl_PointSize = uSize * uScale * (48. + seed * 24.) * (1. + uScatter * 1.1) / -mv.z;
+					gl_Position = projectionMatrix * mv;
+				}`,
+			fragmentShader: /* glsl */ `
+				uniform sampler2D uLabel;
+				uniform float uFade, uScatter;
+				varying float vSeed;
+				varying float vAlpha;
+				void main(){
+					float a = texture2D(uLabel, vec2(gl_PointCoord.x, 1. - gl_PointCoord.y)).a;
+					if (a < .02) discard;
+					// One soft, pale tint so the labels stay barely-there
+					vec3 col = vec3(.82, .84, 1.);
+					// Labels stay readable while scattered, even where the core is dimmed behind text
+					gl_FragColor = vec4(col, a * vAlpha * mix(uFade, 1., uScatter));
+				}`,
+			transparent: true,
+			depthWrite: false,
+			blending: THREE.AdditiveBlending,
+		})
+	);
+}
+
+core.add(kadirLabels(isMobile ? 35 : 70));
+
 // Input: pointer / touch / device tilt
 const pointer = new THREE.Vector2();
 const target = new THREE.Vector2();
