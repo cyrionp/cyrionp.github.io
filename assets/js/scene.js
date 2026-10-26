@@ -216,20 +216,20 @@ function kadirLabels(count) {
 					p *= 1. + uScatter * (.8 + seed * 2.2);
 					vec4 mv = modelViewMatrix * vec4(p, 1.);
 					float twinkle = 1. - .3 * uTwinkle * (.5 + .5 * sin(uTime * 1.5 + seed * 50.));
-					vAlpha = mix(.6, 1., uScatter) * twinkle;
+					vAlpha = mix(.16, .4, uScatter) * twinkle;
 					gl_PointSize = uSize * uScale * (48. + seed * 24.) * (1. + uScatter * 1.1) / -mv.z;
 					gl_Position = projectionMatrix * mv;
 				}`,
 			fragmentShader: /* glsl */ `
 				uniform sampler2D uLabel;
-				uniform vec3 uColorA, uColorB, uColorC;
 				uniform float uFade, uScatter;
 				varying float vSeed;
 				varying float vAlpha;
 				void main(){
 					float a = texture2D(uLabel, vec2(gl_PointCoord.x, 1. - gl_PointCoord.y)).a;
 					if (a < .02) discard;
-					vec3 col = vSeed > .88 ? uColorC : mix(uColorA, uColorB, vSeed);
+					// One soft, pale tint so the labels stay barely-there
+					vec3 col = vec3(.82, .84, 1.);
 					// Labels stay readable while scattered, even where the core is dimmed behind text
 					gl_FragColor = vec4(col, a * vAlpha * mix(uFade, 1., uScatter));
 				}`,
